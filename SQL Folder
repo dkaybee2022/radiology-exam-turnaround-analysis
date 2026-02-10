@@ -1,2 +1,47 @@
 sql/
-Add SQL analysis for radiology turnaround times
+-- ============================================
+-- Radiology Exam Turnaround Time Analysis
+-- ============================================
+
+-- Business Question:
+-- Are radiologists meeting expected turnaround times,
+-- and how does performance vary across modalities?
+
+------------------------------------------------
+-- 1. Create Exam Duration Metric (Minutes)
+------------------------------------------------
+WITH EXAM_DURATIONS AS (
+    SELECT 
+        Modality,
+        Radiologist,
+        CAST(
+            (JULIANDAY(Exam_End_Time) - JULIANDAY(Exam_Start_Time)) * 24 * 60
+            AS INTEGER
+        ) AS Exam_Duration_Minutes,
+        revenue_per_exam
+    FROM radiology_operations_data
+)
+
+------------------------------------------------
+-- 2. Average Exam Duration by Radiologist
+------------------------------------------------
+SELECT 
+    Radiologist,
+    CAST(AVG(Exam_Duration_Minutes) AS INTEGER) AS Avg_Exam_Duration_Minutes
+FROM EXAM_DURATIONS
+GROUP BY Radiologist
+ORDER BY Avg_Exam_Duration_Minutes DESC;
+------------------------------------------------
+ -- 3. Average Exam Duration by Modality
+WITH EXAM_DURATIONS AS (SELECT 
+    Modality,
+    Radiologist,
+    CAST ((JULIANDAY(Exam_End_Time) - JULIANDAY(Exam_Start_Time)) * 24 * 60 AS INTEGER) Exam_Duration_Minutes,
+    revenue_per_exam
+FROM radiology_operations_data)
+
+SELECT modality, CAST (AVG(Exam_Duration_Minutes) AS INTEGER) AS AVG_EXAM_DURATION
+FROM EXAM_DURATIONS
+GROUP BY modality
+ORDER BY AVG_EXAM_DURATION
+DESC;
